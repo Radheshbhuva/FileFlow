@@ -1,0 +1,19 @@
+# Account Setup
+
+## Root Account
+
+Used only for:
+- Billing
+- Security
+- Recovery
+
+## IAM User
+
+Username:
+aws-file-sharing-admin
+
+Permissions:
+AdministratorAccess
+
+MFA:
+Enabled
