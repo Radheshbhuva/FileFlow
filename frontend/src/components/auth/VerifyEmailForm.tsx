@@ -8,14 +8,16 @@ export default function VerifyEmailForm({
   onVerify,
   onResend,
   onBackToLogin,
+  initialCode = '',
 }: {
   onVerify: (payload: { code: string }) => Promise<void>;
   onResend: () => Promise<void>;
   onBackToLogin: () => void;
+  initialCode?: string;
 }) {
   const codeId = useId();
 
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState(initialCode);
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
 

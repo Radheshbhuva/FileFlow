@@ -1,4 +1,5 @@
 import { useId, useMemo, useState } from 'react';
+import { parseApiError } from '../../services/api/errorParser';
 
 type PasswordChecklist = {
   minLen: boolean;
@@ -59,17 +60,19 @@ function validateConfirmPassword(password: string, confirm: string): string | nu
 export default function RegisterForm({
   onSubmit,
 }: {
-  onSubmit: (payload: { fullName: string; email: string; password: string }) => Promise<void>;
+  onSubmit: (payload: { fullName: string; email: string; password: string; planType: 'Free' | 'Professional' | 'Enterprise' }) => Promise<void>;
 }) {
   const fullNameId = useId();
   const emailId = useId();
   const passwordId = useId();
   const confirmId = useId();
+  const planId = useId();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [planType, setPlanType] = useState<'Free' | 'Professional' | 'Enterprise'>('Free');
 
   const [showPassword, setShowPassword] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -77,6 +80,9 @@ export default function RegisterForm({
   const [isLoading, setIsLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
+
+  const pendingEmailRef = email.trim();
+
 
   const checklist = useMemo(() => buildPasswordChecklist(password), [password]);
   const strength = useMemo(() => passwordStrength(checklist), [checklist]);
@@ -102,10 +108,11 @@ export default function RegisterForm({
 
     try {
       setIsLoading(true);
-      await onSubmit({ fullName: fullName.trim(), email: email.trim(), password });
-      setFormSuccess('Account created. Check your inbox for a verification email.');
+      const submitPayload = { fullName: fullName.trim(), email: email.trim(), password, planType };
+      await onSubmit(submitPayload);
+      setFormSuccess('Account created successfully. Please verify your email.');
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unable to create account. Please try again.';
+      const message = parseApiError(err);
       setFormError(message);
     } finally {
       setIsLoading(false);
@@ -329,6 +336,24 @@ export default function RegisterForm({
                 {confirmError}
               </p>
             ) : null}
+          </div>
+
+          <div>
+            <label htmlFor={planId} className="block text-sm font-medium text-slate-200">
+              Subscription Plan
+            </label>
+            <select
+              id={planId}
+              name="planType"
+              value={planType}
+              onChange={(e) => setPlanType(e.target.value as any)}
+              className="mt-2 w-full rounded-xl border border-slate-800/90 bg-slate-900/50 px-4 py-3 text-slate-100 shadow-soft focus:border-sky-500 focus:outline-none cursor-pointer"
+              disabled={isLoading}
+            >
+              <option value="Free" className="bg-slate-905 text-slate-100">Free Basic Plan (500 MB)</option>
+              <option value="Professional" className="bg-slate-905 text-slate-100">Professional Tier (5 GB)</option>
+              <option value="Enterprise" className="bg-slate-905 text-slate-100">Enterprise Workspace (50 GB)</option>
+            </select>
           </div>
 
           {formError ? (
